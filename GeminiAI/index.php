@@ -129,7 +129,7 @@ require 'phpmailer/src/SMTP.php';
                                 $_SESSION['user_name'] = $row4['user_name'];
                                 $_SESSION['user_id'] = $row4['user_id'];
 
-                                echo "<script>window.location.href='./home/home.html'</script>";
+                                echo "<script>window.location.href='./home/home.php'</script>";
                             }
 
                             else {
