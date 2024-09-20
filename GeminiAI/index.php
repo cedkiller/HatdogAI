@@ -16,8 +16,9 @@ require 'phpmailer/src/SMTP.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HotdhogAI</title>
     <link rel="icon" href="./img/icon.png">
-    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/style3.css">
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
         /* Modal Styles */
         .modal {
@@ -72,6 +73,7 @@ require 'phpmailer/src/SMTP.php';
                         <input type="password" id="login-password" name="pass" placeholder="Password" required>
                         <span class="toggle-password" data-target="#login-password">👁️</span>
                     </div>
+                    <center><div class="g-recaptcha" data-sitekey="6Lc3yEcqAAAAAL1ujFFVAixn4dNfGXHh9AmiedP6"></div></center>
                     <button type="submit" name="login">Login</button>
                     <p><a href="#" id="forgot-password-link">Forgot Password?</a></p> <!-- Forgot Password Link -->
                 </form>
@@ -82,64 +84,73 @@ require 'phpmailer/src/SMTP.php';
                     $email = $_POST['email'];
                     $pass = $_POST['pass'];
 
-                    $sql = "SELECT admin_email FROM admin WHERE admin_email = '$email'";
-                    $result = mysqli_query($conn, $sql);
-                    $row = mysqli_fetch_assoc($result);
+                    $recaptchaResponse = $_POST['g-recaptcha-response'];
 
-                    if (isset($row['admin_email']) && $row['admin_email'] === $email)
+                    if (strlen($recaptchaResponse) >= 10)
                     {
-                        $sql5 = "SELECT admin_password FROM admin WHERE admin_email = '$email'";
-                        $result5 = mysqli_query($conn, $sql5);
-                        $row5 = mysqli_fetch_assoc($result5);
+                        $sql = "SELECT admin_email FROM admin WHERE admin_email = '$email'";
+                        $result = mysqli_query($conn, $sql);
+                        $row = mysqli_fetch_assoc($result);
 
-                        if ($row5['admin_password'] === $pass)
+                        if (isset($row['admin_email']) && $row['admin_email'] === $email)
                         {
-                            $sql6 = "SELECT * FROM admin WHERE admin_email = '$email'";
-                            $result6 = mysqli_query($conn, $sql6);
-                            $row6 = mysqli_fetch_assoc($result6);
+                            $sql5 = "SELECT admin_password FROM admin WHERE admin_email = '$email'";
+                            $result5 = mysqli_query($conn, $sql5);
+                            $row5 = mysqli_fetch_assoc($result5);
 
-                            $_SESSION['admin_name'] = "Admin";
-                            $_SESSION['admin_id'] = $row6['admin_id'];
+                            if ($row5['admin_password'] === $pass)
+                            {
+                                $sql6 = "SELECT * FROM admin WHERE admin_email = '$email'";
+                                $result6 = mysqli_query($conn, $sql6);
+                                $row6 = mysqli_fetch_assoc($result6);
 
-                            echo "<script>window.location.href='./admin/home.php'</script>";
+                                $_SESSION['admin_name'] = "Admin";
+                                $_SESSION['admin_id'] = $row6['admin_id'];
+
+                                echo "<script>window.location.href='./admin/home.php'</script>";
+                            }
+
+                            else {
+                                echo "<script>swal('Invalid Password!', 'Your password is invalid please try again!', 'error');</script>"; 
+                            }
                         }
 
                         else {
-                            echo "<script>swal('Invalid Password!', 'Your password is invalid please try again!', 'error');</script>"; 
+                            $sql2 = "SELECT user_email FROM user WHERE user_email = '$email'";
+                            $result2 = mysqli_query($conn, $sql2);
+                            $row2 = mysqli_fetch_assoc($result2);
+
+                            if (isset($row2['user_email']) && $row2['user_email'] === $email)
+                            {
+                                $sql3 = "SELECT user_password FROM user WHERE user_email = '$email'";
+                                $result3 = mysqli_query($conn, $sql3);
+                                $row3 = mysqli_fetch_assoc($result3);
+
+                                if (password_verify($pass, $row3['user_password']))
+                                {
+                                    $sql4 = "SELECT * FROM user WHERE user_email = '$email'";
+                                    $result4 = mysqli_query($conn, $sql4);
+                                    $row4 = mysqli_fetch_assoc($result4);
+
+                                    $_SESSION['user_name'] = $row4['user_name'];
+                                    $_SESSION['user_id'] = $row4['user_id'];
+
+                                    echo "<script>window.location.href='./home/home.php'</script>";
+                                }
+
+                                else {
+                                    echo "<script>swal('Invalid Password!', 'Your password is invalid please try again!', 'error');</script>";    
+                                }
+                            }
+
+                            else {
+                                echo "<script>swal('Invalid Email!', 'Your email is invalid please try again!', 'error');</script>";
+                            }
                         }
                     }
 
                     else {
-                        $sql2 = "SELECT user_email FROM user WHERE user_email = '$email'";
-                        $result2 = mysqli_query($conn, $sql2);
-                        $row2 = mysqli_fetch_assoc($result2);
-
-                        if (isset($row2['user_email']) && $row2['user_email'] === $email)
-                        {
-                            $sql3 = "SELECT user_password FROM user WHERE user_email = '$email'";
-                            $result3 = mysqli_query($conn, $sql3);
-                            $row3 = mysqli_fetch_assoc($result3);
-
-                            if (password_verify($pass, $row3['user_password']))
-                            {
-                                $sql4 = "SELECT * FROM user WHERE user_email = '$email'";
-                                $result4 = mysqli_query($conn, $sql4);
-                                $row4 = mysqli_fetch_assoc($result4);
-
-                                $_SESSION['user_name'] = $row4['user_name'];
-                                $_SESSION['user_id'] = $row4['user_id'];
-
-                                echo "<script>window.location.href='./home/home.php'</script>";
-                            }
-
-                            else {
-                                echo "<script>swal('Invalid Password!', 'Your password is invalid please try again!', 'error');</script>";    
-                            }
-                        }
-
-                        else {
-                            echo "<script>swal('Invalid Email!', 'Your email is invalid please try again!', 'error');</script>";
-                        }
+                        echo "<script>swal('Captcha Failed!', 'Please complete the captcha!', 'error');</script>";
                     }
                 }
                 ?>
@@ -161,6 +172,7 @@ require 'phpmailer/src/SMTP.php';
                         <input type="password" id="signup-confirm-password" name="con_pass" placeholder="Confirm password" required>
                         <span class="toggle-password" data-target="#signup-confirm-password">👁️</span>
                     </div>
+                    <center><div class="g-recaptcha" data-sitekey="6Lc3yEcqAAAAAL1ujFFVAixn4dNfGXHh9AmiedP6"></div></center>
                     <button type="submit" name="sign">Sign Up</button>
                 </form>
 
@@ -171,30 +183,39 @@ require 'phpmailer/src/SMTP.php';
                     $pass = $_POST['pass'];
                     $con_pass = $_POST['con_pass'];
 
-                    // Check if the password meets all criteria
-                    if (strlen($pass) < 8) {
-                        echo "<script>swal('Password too short!', 'Password must be at least 8 characters long.', 'error');</script>";
-                    } 
-                    elseif (!preg_match('/[A-Z]/', $pass)) {
-                        echo "<script>swal('Password requirement not met!', 'Password must contain at least one uppercase letter.', 'error');</script>";
-                    }
-                    elseif (!preg_match('/[a-z]/', $pass)) {
-                        echo "<script>swal('Password requirement not met!', 'Password must contain at least one lowercase letter.', 'error');</script>";
-                    }
-                    elseif (!preg_match('/[0-9]/', $pass)) {
-                        echo "<script>swal('Password requirement not met!', 'Password must contain at least one number.', 'error');</script>";
-                    }
-                    elseif ($pass === $con_pass) {
-                        $hash_password = password_hash($pass, PASSWORD_DEFAULT);
+                    $recaptchaResponse = $_POST['g-recaptcha-response'];
 
-                        $sql = "INSERT INTO user(user_name, user_email, user_password) VALUES('$name','$email','$hash_password')";
-
-                        if (mysqli_query($conn, $sql)) {
-                            echo "<script>swal('You have been registered!', 'Please go to login to enter your account!', 'success');</script>";
+                    if (strlen($recaptchaResponse) >= 10)
+                    {
+                        // Check if the password meets all criteria
+                        if (strlen($pass) < 8) {
+                            echo "<script>swal('Password too short!', 'Password must be at least 8 characters long.', 'error');</script>";
+                        } 
+                        elseif (!preg_match('/[A-Z]/', $pass)) {
+                            echo "<script>swal('Password requirement not met!', 'Password must contain at least one uppercase letter.', 'error');</script>";
                         }
-                    } 
+                        elseif (!preg_match('/[a-z]/', $pass)) {
+                            echo "<script>swal('Password requirement not met!', 'Password must contain at least one lowercase letter.', 'error');</script>";
+                        }
+                        elseif (!preg_match('/[0-9]/', $pass)) {
+                            echo "<script>swal('Password requirement not met!', 'Password must contain at least one number.', 'error');</script>";
+                        }
+                        elseif ($pass === $con_pass) {
+                            $hash_password = password_hash($pass, PASSWORD_DEFAULT);
+
+                            $sql = "INSERT INTO user(user_name, user_email, user_password) VALUES('$name','$email','$hash_password')";
+
+                            if (mysqli_query($conn, $sql)) {
+                                echo "<script>swal('You have been registered!', 'Please go to login to enter your account!', 'success');</script>";
+                            }
+                        } 
+                        else {
+                            echo "<script>swal('Password not match!', 'Your confirm password does not match the entered password!', 'error');</script>";
+                        }
+                    }
+
                     else {
-                        echo "<script>swal('Password not match!', 'Your confirm password does not match the entered password!', 'error');</script>";
+                        echo "<script>swal('Captcha Failed!', 'Please complete the captcha!', 'error');</script>";
                     }
                 }
                 ?>
@@ -212,6 +233,7 @@ require 'phpmailer/src/SMTP.php';
             <p>Please enter your email to reset your password.</p>
             <form action="" method="POST">
                 <input type="email" name="forgot_email" placeholder="Enter your email" required>
+                <center><div class="g-recaptcha" data-sitekey="6Lc3yEcqAAAAAL1ujFFVAixn4dNfGXHh9AmiedP6"></div></center>
                 <button type="submit" name="reset_password">Submit</button>
             </form>
 
@@ -223,60 +245,69 @@ require 'phpmailer/src/SMTP.php';
                 $result7 = mysqli_query($conn, $sql7);
                 $row7 = mysqli_fetch_assoc($result7);
 
-                if ($row7 && $row7['user_email'] === $forgot_email)
+                $recaptchaResponse = $_POST['g-recaptcha-response'];
+
+                if (strlen($recaptchaResponse) >= 10)
                 {
-                    $mail = new PHPMailer(true);
+                    if ($row7 && $row7['user_email'] === $forgot_email)
+                    {
+                        $mail = new PHPMailer(true);
 
-                    $mail->isSMTP();
-                    $mail->Host = 'smtp.gmail.com';
-                    $mail->SMTPAuth = true;
-                    $mail->Username = 'aniamaesantos0@gmail.com';
-                    $mail->Password = 'eskmnqzpoblrpruw';
-                    $mail->SMTPSecure = 'ssl';
-                    $mail->Port = 465;
+                        $mail->isSMTP();
+                        $mail->Host = 'smtp.gmail.com';
+                        $mail->SMTPAuth = true;
+                        $mail->Username = 'aniamaesantos0@gmail.com';
+                        $mail->Password = 'eskmnqzpoblrpruw';
+                        $mail->SMTPSecure = 'ssl';
+                        $mail->Port = 465;
 
-                    $mail->setFrom('aniamaesantos0@gmail.com');
+                        $mail->setFrom('aniamaesantos0@gmail.com');
 
-                    $mail->addAddress($_POST["forgot_email"]);
+                        $mail->addAddress($_POST["forgot_email"]);
 
-                    $mail->isHTML(true);
+                        $mail->isHTML(true);
 
-                    $mail->Subject = 'Reset Password';
-                    $mail->Body = '<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-                        <p><b>Hello!</b></p>
-                        <p>You are receiving this email because we received a password reset request for your account.</p>
-                        <br>
-                        <div style="text-align: center;">
-                            <a href="http://localhost/geminiai/reset_password.php" style="
-                                background-color: #512da8;
-                                color: #fff;
-                                padding: 12px 40px;
-                                font-size: 14px;
-                                border-radius: 8px;
-                                text-decoration: none;
-                                font-weight: bold;
-                                letter-spacing: 1px;
-                                display: inline-block;
-                                margin: 15px 0;">
-                                Reset Password
-                            </a>
-                        </div>
-                        <br>
-                        <p>If you did not request a password reset, no further action is required.</p>
-                        <hr style="border: none; border-top: 1px solid #ddd;">
-                        <footer style="text-align: center; margin-top: 20px;">
-                            <p style="font-size: 12px; color: #999;">&copy; 2024 HotdhogAI. All rights reserved.</p>
-                        </footer>
-                    </div>';
-
-
-                    $mail->send();
+                        $mail->Subject = 'Reset Password';
+                        $mail->Body = '<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+                            <p><b>Hello!</b></p>
+                            <p>You are receiving this email because we received a password reset request for your account.</p>
+                            <br>
+                            <div style="text-align: center;">
+                                <a href="http://localhost/geminiai/reset_password.php" style="
+                                    background-color: #512da8;
+                                    color: #fff;
+                                    padding: 12px 40px;
+                                    font-size: 14px;
+                                    border-radius: 8px;
+                                    text-decoration: none;
+                                    font-weight: bold;
+                                    letter-spacing: 1px;
+                                    display: inline-block;
+                                    margin: 15px 0;">
+                                    Reset Password
+                                </a>
+                            </div>
+                            <br>
+                            <p>If you did not request a password reset, no further action is required.</p>
+                            <hr style="border: none; border-top: 1px solid #ddd;">
+                            <footer style="text-align: center; margin-top: 20px;">
+                                <p style="font-size: 12px; color: #999;">&copy; 2024 HotdhogAI. All rights reserved.</p>
+                            </footer>
+                        </div>';
 
 
-                    echo "<script>swal('Success!', 'Please see your gmail account to see the link for reset password!', 'success');</script>";
+                        $mail->send();
+
+
+                        echo "<script>swal('Success!', 'Please see your gmail account to see the link for reset password!', 'success');</script>";
+                    }
+                    else {
+                        echo "<script>swal('Email not found!', 'Your email is not in the system!', 'error');</script>";
+                    }
                 }
+
                 else {
-                    echo "<script>swal('Email not found!', 'Your email is not in the system!', 'error');</script>";
+                    echo "<script>swal('Captcha Failed!','Please complete the captcha','error')</script>";
                 }
             }
             ?>
