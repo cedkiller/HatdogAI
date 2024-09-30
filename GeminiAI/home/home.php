@@ -1,8 +1,17 @@
 <?php
 include('../conn.php');
 
-$sql = "SELECT * FROM propmt";
+$user_id = $_SESSION['user_id'];
+
+$user_name = $_SESSION['user_name'];
+
+$title_id = $_SESSION['title_id'];
+
+$sql = "SELECT * FROM propmt WHERE propmt_user_id = '$user_id' and propmt_title_id = '$title_id'";
 $result = mysqli_query($conn, $sql);
+
+$sql2 = "SELECT * FROM title WHERE title_user_name = '$user_name'";
+$result2 = mysqli_query($conn, $sql2);
 ?>
 
 <!DOCTYPE html>
@@ -10,9 +19,10 @@ $result = mysqli_query($conn, $sql);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>HatdgoAI</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="./css/style3.css">
+    <link rel="stylesheet" href="./css/style4.css">
+    <link rel="icon" href="../img/icon.png">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://kit.fontawesome.com/75fe70a6d6.js" crossorigin="anonymous"></script>
     <script type="importmap">
@@ -22,8 +32,35 @@ $result = mysqli_query($conn, $sql);
         }
       }
     </script>
+
+    <style>
+        /* Style for the loading screen */
+        #loading-screen {
+            display: flex; /* Show the loading screen initially */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: gray; /* Semi-transparent background */
+            justify-content: center;
+            align-items: center;
+            z-index: 9999; /* Ensure it stays above all other elements */
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+    </style>
 </head>
 <body>
+  <!-- Loading Screen -->
+  <div id="loading-screen" class="d-flex">
+        <div class="spinner-border text-light" role="status">
+            <span class="visually-hidden"></span>
+        </div>
+    </div>
 
 <div class="d-flex">
   <!-- Sidebar -->
@@ -34,7 +71,9 @@ $result = mysqli_query($conn, $sql);
       <a href="#" class="list-group-item list-group-item-action bg-dark" style="color: lightgray;"><?php echo $_SESSION['user_name'];?> <?php echo $_SESSION['user_id'];?></a>
       <a href="./logout.php" class="list-group-item list-group-item-action bg-dark" style="color: lightgray;">Logout</a>
       <a href="#" class="list-group-item list-group-item-action bg-dark" style="color: lightgray;">History Propmt Below <i class="fa-solid fa-angle-down"></i></a>
-      <a href="#" class="list-group-item list-group-item-action bg-dark" style="color: lightgray;">Example Propmt</a>
+      <?php while($row2 = mysqli_fetch_assoc($result2)) { ?>
+      <a href="./switch.php?id=<?php echo $row2['title_id'];?>" class="list-group-item list-group-item-action bg-dark" style="color: lightgray;"><?php echo $row2['title_name'];?></a>
+      <?php } ?>
     </div>
   </div>
   
@@ -120,6 +159,16 @@ $result = mysqli_query($conn, $sql);
   }
   // For Gemini AI
 </script>
+
+<script>
+        // Wait for the entire page (including resources) to load
+        window.addEventListener('load', function() {
+            // Add a delay of 2 seconds before hiding the loading screen
+            setTimeout(function() {
+                document.getElementById('loading-screen').remove(); // Remove the loading screen from the DOM
+            }, 1000); // 2-second delay
+        });
+    </script>
 
 <script>
   // var elSandbox = document.querySelector(".sandbox");

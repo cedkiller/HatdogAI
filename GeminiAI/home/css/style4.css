@@ -48,7 +48,7 @@
   position: relative;
   background-color: #fff;
   width: 1700px;  /* Updated width */
-  height: 930px; /* Height unchanged */
+  height: 890px; /* Height unchanged */
   border-radius: 30px; /* Added border radius */
   transform: translateY(50%) translateZ(-150px) rotateY(40deg);
   transition: transform 2s;

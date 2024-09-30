@@ -1,0 +1,46 @@
+html {
+    scroll-behavior: smooth;
+}
+
+* {
+    margin: 0;
+}
+
+::-webkit-scrollbar {
+    width: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: black;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: lightgray;
+}
+
+.edit {
+    cursor: pointer;
+    background: blue;
+    color: white;
+    font-weight: bold;
+    opacity: 1;
+    transition: all 0.3s ease 0s;
+}
+
+.edit:hover {
+    opacity: 0.5;
+}
+
+.del {
+    cursor: pointer;
+    background: red;
+    color: white;
+    font-weight: bold;
+    opacity: 1;
+    transition: all 0.3s ease 0s;
+}
+
+.del:hover {
+    opacity: 0.5;
+}
